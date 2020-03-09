@@ -1,26 +1,29 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
+import ProductPreview from './ProductPreview';
 
-const makeQuery = (slug) => `
+const query = `
 query MyQuery {
-  article(filter: {slug: {eq: "${slug}"}}) {
-    createdAt
+  allProducts {
     id
-    title
-    content
+    name
     slug
+    cover {
+      url
+    }
+    category {
+      id
+      name
+    }
   }
 }`;
 
-export default class Article extends Component {
+export default class ProductList extends Component {
   state = {
     data: null,
   }
 
   componentDidMount = () => {
-    const slug = this.props.match.params.slug;
-    const query = makeQuery(slug);
-
     Axios.post(
       // GraphQL endpoint
       'https://graphql.datocms.com/',
@@ -41,6 +44,7 @@ export default class Article extends Component {
       } else {
         const { data } = response.data;
         this.setState({ data });
+        console.log (data)
       }
     })
     .catch(error => console.error(error));
@@ -53,13 +57,14 @@ export default class Article extends Component {
       return <div>Loading...</div>;
     }
 
-    const { article } = data;
-
     return (
-      <article>
-        <h1>{article.title}</h1>
-        <p>{article.content}</p>
-      </article>
+      <ul>
+        {data.allProducts.map( (product, index) =>
+          <li key={index}>
+            <ProductPreview {...product} />
+          </li>
+        )}
+      </ul>
     );
   }
 }
